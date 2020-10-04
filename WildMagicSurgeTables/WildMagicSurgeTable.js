@@ -117,7 +117,7 @@ var WildMagicSurgeTable = WildMagicSurgeTable || (function() {
                     whisperTo = args[2];
                 }
             }
-			var firstRoll = randomInteger(20);
+            var firstRoll = randomInteger(20);
             if(firstRoll > 1)
 			{
                 writeFirstRoll(msg, firstRoll, isPrivate, whisperTo);
