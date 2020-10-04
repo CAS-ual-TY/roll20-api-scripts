@@ -6,9 +6,9 @@ var WildMagicSurgeTable = WildMagicSurgeTable || (function() {
     var version = 0.5,
         rangeMax = 100,
         apiCommand = "!wildmagic",
-        helpMsg = "Usage - !wildmagic [--help|-h] [--private|-w [whisperTo]], rolls on the wildmagic table, optionally whispers result to roller if --private is used or <whisperTo> if present i.e. (-w gm will send the results to the GM as a whisper). '--help' will return this message.",
+        helpMsg = "Usage - !wildmagic [--help|-h] [--private|-w [whisperTo]], rolls 1d20, if the result is 1 then rolls on the wildmagic table, optionally whispers result to roller if --private is used or <whisperTo> if present i.e. (-w gm will send the results to the GM as a whisper). '--help' will return this message.",
         tableName = "Wild Magic Table",
-        msgTemplate = "&{template:default} {{name=Wild Magic Surge}} {{roll=!roll}} {{result=!result}}",
+        msgTemplate = "&{template:default} {{name=Wild Magic Surge}} {{firstRoll=!firstRoll}} {{roll=!roll}} {{result=!result}}",
         table = [
             {range: [1,2], result: "Roll on this table at the start of each of your turns for the next minute, ignoring this result on subsequent rolls."},
             {range: [3,4], result: "For the next minute, you can see any invisible creature to which you have line of sight."},
@@ -62,8 +62,17 @@ var WildMagicSurgeTable = WildMagicSurgeTable || (function() {
             {range: [99,100], result: "You regain all expended Sorcery Points!"},
          ],
 
-    writeResult = function(msg, rollResult, isPrivate, whisperTo) {
-        var message = msgTemplate.replace('!roll', rollResult.roll).replace('!result', rollResult.result)
+    writeResult = function(msg, firstRoll, rollResult, isPrivate, whisperTo) {
+        var message = msgTemplate.replace('!firstRoll', firstRoll).replace('!roll', rollResult.roll).replace('!result', rollResult.result)
+        sendChatFinally(msg, isPrivate, whisperTo, message);
+    },
+
+    writeFirstRoll = function(msg, firstRoll, isPrivate, whisperTo) {
+        var message = msgTemplate.replace('!firstRoll', firstRoll).replace('!roll', "-").replace('!result', "-")
+        sendChatFinally(msg, isPrivate, whisperTo, message);
+    },
+
+    sendChatFinally = function(msg, isPrivate, whisperTo, message) {
         var speakingAs = msg.who || tableName;
         if(isPrivate){
             if (!!whisperTo) {
@@ -108,7 +117,15 @@ var WildMagicSurgeTable = WildMagicSurgeTable || (function() {
                     whisperTo = args[2];
                 }
             }
-            writeResult(msg, rollOnTable(), isPrivate, whisperTo);
+			var firstRoll = randomInteger(20);
+            if(firstRoll > 1)
+			{
+                writeFirstRoll(msg, firstRoll, isPrivate, whisperTo);
+            }
+            else
+            {
+                writeResult(msg, firstRoll, rollOnTable(), isPrivate, whisperTo);
+            }
         }
     },
 
